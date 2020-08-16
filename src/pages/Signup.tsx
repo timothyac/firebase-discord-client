@@ -2,7 +2,7 @@ import React from "react";
 // @ts-ignore
 import { useForm, useField } from "react-form";
 
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 
 interface SubmitProps {
   username: string;
@@ -21,14 +21,23 @@ const PasswordInput = () => {
   return <input type="password" {...getInputProps()} />;
 };
 
-const Login = () => {
+const Signup = () => {
   const { Form } = useForm({
     onSubmit: async ({ username, password }: SubmitProps) => {
       try {
         if (!username || !password)
           throw Error("Missing username and/or password");
 
-        await auth.signInWithEmailAndPassword(username, password);
+        // Create user
+        const { user } = await auth.createUserWithEmailAndPassword(
+          username,
+          password
+        );
+
+        // Save something to DB
+        await db.collection("users").doc(user?.uid).set({
+          testField: "value123",
+        });
       } catch (error) {
         alert(error.message);
       }
@@ -37,7 +46,7 @@ const Login = () => {
 
   return (
     <div>
-      <h1>Login</h1>
+      <h1>Signup</h1>
       <Form>
         <span>
           Username: <UsernameInput />
@@ -45,10 +54,10 @@ const Login = () => {
         <span>
           Password: <PasswordInput />
         </span>
-        <button type="submit">Login</button>
+        <button type="submit">Signup</button>
       </Form>
     </div>
   );
 };
 
-export default Login;
+export default Signup;
