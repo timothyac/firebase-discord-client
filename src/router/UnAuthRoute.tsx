@@ -8,13 +8,13 @@ const UnAuthRoute: React.FunctionComponent<any> = ({
   component: C,
   ...rest
 }) => {
-  const isAuthenticated = useContext(AuthStateContext);
+  const auth = useContext(AuthStateContext);
 
   return (
     <Route
       {...rest}
       render={(props) =>
-        !isAuthenticated ? (
+        !auth?.isAuthenticated ? (
           <>
             <Navbar />
             <C props={props} />

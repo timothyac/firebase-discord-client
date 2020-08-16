@@ -5,13 +5,13 @@ import { AuthStateContext } from "../context/AuthContext";
 import Navbar from "../components/system/Navbar";
 
 const AuthRoute: React.FunctionComponent<any> = ({ component: C, ...rest }) => {
-  const isAuthenticated = useContext(AuthStateContext);
+  const auth = useContext(AuthStateContext);
 
   return (
     <Route
       {...rest}
       render={(props) =>
-        isAuthenticated ? (
+        auth?.isAuthenticated ? (
           <>
             <Navbar />
             <C props={props} />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { BrowserRouter as Router } from "react-router-dom";
 
@@ -12,26 +12,14 @@ const AppStyled = styled.div`
 `;
 
 const App = () => {
-  const [loading, setIsLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    setIsLoading(true);
-    setIsAuthenticated(false);
-  }, [setIsLoading]);
-
   return (
-    <>
-      {loading && (
-        <AppStyled>
-          <AuthProvider tokensValid={isAuthenticated}>
-            <Router>
-              <Routes />
-            </Router>
-          </AuthProvider>
-        </AppStyled>
-      )}
-    </>
+    <AppStyled>
+      <AuthProvider>
+        <Router>
+          <Routes />
+        </Router>
+      </AuthProvider>
+    </AppStyled>
   );
 };
 

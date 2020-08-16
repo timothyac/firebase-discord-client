@@ -1,6 +1,8 @@
 import { createContext } from "react";
 
-type State = { isAuthenticated: any };
+// TODO: Redefine as user object
+type State = any;
 
-export const AuthStateContext = createContext<State | undefined>(undefined);
-export const AuthFunctionContext = createContext<any>(undefined);
+export const AuthStateContext = createContext<State>({
+  isAuthenticated: false,
+});
