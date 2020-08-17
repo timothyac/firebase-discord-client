@@ -1,5 +1,6 @@
 import firebase from "firebase/app";
 import "firebase/auth";
+import "firebase/firestore";
 
 // These come from https://firebase.google.com/docs/web/setup#config-object
 // Storing them in a .ENV is NOT secure, it is for boilerplate convenience
@@ -16,3 +17,4 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 export const auth = firebase.auth();
+export const db = firebase.firestore();

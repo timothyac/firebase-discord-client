@@ -1,52 +1,46 @@
-import React from "react";
+import React, { useState } from "react";
 // @ts-ignore
-import { useForm, useField } from "react-form";
-
 import { auth } from "../firebase";
 
-interface SubmitProps {
-  username: string;
-  password: string;
-}
-
-const UsernameInput = () => {
-  const { getInputProps } = useField("username");
-
-  return <input type="text" {...getInputProps()} />;
-};
-
-const PasswordInput = () => {
-  const { getInputProps } = useField("password");
-
-  return <input type="password" {...getInputProps()} />;
-};
-
 const Login = () => {
-  const { Form } = useForm({
-    onSubmit: async ({ username, password }: SubmitProps) => {
-      try {
-        if (!username || !password)
-          throw Error("Missing username and/or password");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-        await auth.signInWithEmailAndPassword(username, password);
-      } catch (error) {
-        alert(error.message);
-      }
-    },
-  });
+  const onSubmit = async (e: any) => {
+    e.preventDefault();
+
+    try {
+      if (!username || !password)
+        throw Error("Missing username and/or password");
+
+      await auth.signInWithEmailAndPassword(username, password);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
     <div>
       <h1>Login</h1>
-      <Form>
+      <form onSubmit={onSubmit}>
         <span>
-          Username: <UsernameInput />
+          Username:{" "}
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
         </span>
         <span>
-          Password: <PasswordInput />
+          Password:{" "}
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </span>
         <button type="submit">Login</button>
-      </Form>
+      </form>
     </div>
   );
 };

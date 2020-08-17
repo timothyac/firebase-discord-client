@@ -4,5 +4,5 @@ import { createContext } from "react";
 type State = any;
 
 export const AuthStateContext = createContext<State>({
-  isAuthenticated: false,
+  isAuthenticated: null,
 });
