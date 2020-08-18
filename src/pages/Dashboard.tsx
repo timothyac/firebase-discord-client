@@ -10,19 +10,19 @@ const useQuery = () => {
 
 const realCode = (code: string) => /^[a-zA-Z0-9]{30}$/.test(code);
 
-const SERVERLESS_URL =
-  "http://localhost:5001/dashboard-auth-a8d93/us-central1/helloWorld";
+const TOKEN_URL = process.env.REACT_APP_TOKEN_URL;
 
 // POST to serverless function for token
 const requestAccessToken = async (code: string) => {
   try {
     // Request access code from discord
-    const res = await fetch(`${SERVERLESS_URL}?code=${code}`, {
+    const res = await fetch(`${TOKEN_URL}?code=${code}`, {
       method: "POST",
     });
 
     const json = await res.json();
 
+    // Check for error message from function
     if (json.error) return Promise.reject(json.error_description);
 
     return json;

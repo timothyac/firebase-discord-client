@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// @ts-ignore
 import { auth, db } from "../firebase";
 
 const Signup = () => {
