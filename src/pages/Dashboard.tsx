@@ -1,16 +1,13 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useLocation, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 import { auth, db } from "../firebase";
 import { AuthStateContext } from "../context/AuthContext";
 import { requestTokens } from "../utils/auth";
 import Guilds from "../components/dashboard/Guilds";
+import { useQuery } from "../utils/useQuery";
 
 const OAUTH_URL = process.env.REACT_APP_OAUTH_URL as string;
-
-const useQuery = () => {
-  return new URLSearchParams(useLocation().search);
-};
 
 const realCode = (code: string) => /^[a-zA-Z0-9]{30}$/.test(code);
 
