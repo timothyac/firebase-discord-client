@@ -38,7 +38,7 @@ export const refreshTokens = async (uid: string) => {
 
     // Request access code from Discord
     const res = await fetch(
-      `${REFRESH_TOKEN_URL}?refresh_token=${doc.data()?.refresh_token}`,
+      `${REFRESH_TOKEN_URL}?refresh_token=${doc.data()?.tokens.refresh_token}`,
       {
         method: "POST",
       }

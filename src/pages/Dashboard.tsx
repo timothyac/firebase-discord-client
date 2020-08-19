@@ -3,45 +3,16 @@ import { useLocation, useHistory } from "react-router-dom";
 
 import { auth, db } from "../firebase";
 import { AuthStateContext } from "../context/AuthContext";
-import { refreshTokens, requestTokens } from "../utils/auth";
+import { requestTokens } from "../utils/auth";
+import { requestUserGuild } from "../utils/discord";
+
+const OAUTH_URL = process.env.REACT_APP_OAUTH_URL as string;
 
 const useQuery = () => {
   return new URLSearchParams(useLocation().search);
 };
 
 const realCode = (code: string) => /^[a-zA-Z0-9]{30}$/.test(code);
-
-const DISC_API = "https://discord.com/api/";
-const OAUTH_URL = `${DISC_API}oauth2/authorize?client_id=744685186335244299&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fdashboard&response_type=code&scope=identify%20guilds`;
-const GET_GUILDS = `${DISC_API}users/@me/guilds`;
-
-const requestUser = async (uid: string) => {
-  try {
-    // Get user token
-    const doc = await db.collection("users").doc(uid).get();
-
-    // Get user's guilds
-    const res = await fetch(GET_GUILDS, {
-      headers: {
-        Authorization: `Bearer ${doc.data()?.access_token}`,
-      },
-    });
-
-    const json = await res.json();
-
-    // Check if refresh token is broken
-    if (json.message === "401: Unauthorized") {
-      refreshTokens(uid)
-        // Store tokens in firestore
-        .then((json) => db.collection("users").doc(uid).set(json))
-        .catch((err) => Promise.reject(err));
-    }
-
-    return json;
-  } catch (error) {
-    return new Error(error);
-  }
-};
 
 const UserId = ({ uid }: { uid: string }) => {
   const [id, setId] = useState(null);
@@ -65,6 +36,49 @@ const UserId = ({ uid }: { uid: string }) => {
   return <pre>{id}</pre>;
 };
 
+const Guilds = ({ uid }: { uid: string }) => {
+  const [guilds, setGuilds] = useState([]);
+
+  const loadUsersGuilds = async () => {
+    try {
+      // Get user doc
+      const doc = await db.collection("users").doc(uid).get();
+
+      // Get user guilds
+      const guilds = await doc.data()?.guilds;
+
+      // Check to see if it is empty
+      if (!guilds || guilds.length === 0) {
+        requestUserGuild(uid)
+          // Save the guilds in the database
+          .then((guilds) => {
+            db.collection("users").doc(uid).update({ guilds });
+            return guilds;
+          })
+          // Store the user's guilds in state
+          .then((guilds) => setGuilds(guilds))
+          .catch((err) => alert(err));
+      } else {
+        setGuilds(guilds);
+      }
+    } catch (error) {
+      console.error(error);
+      alert(error);
+    }
+  };
+
+  useEffect(() => {
+    loadUsersGuilds();
+  }, []);
+
+  return (
+    <>
+      {guilds.length !== 0 &&
+        guilds.map(({ id, name }) => <div key={id}>{name}</div>)}
+    </>
+  );
+};
+
 const Dashboard = () => {
   // Get user's unique ID
   const { uid } = useContext(AuthStateContext);
@@ -76,7 +90,7 @@ const Dashboard = () => {
   if (code && realCode(code)) {
     requestTokens(code)
       // Store tokens in firestore
-      .then((json) => db.collection("users").doc(uid).set(json))
+      .then((json) => db.collection("users").doc(uid).set({ tokens: json }))
       // Redirect to dashboard
       .then(() => history.push("/dashboard"))
       .catch((err) => {
@@ -84,7 +98,6 @@ const Dashboard = () => {
           // Send back to dashboard
           history.push("/dashboard");
         } else {
-          console.error(err);
           alert(err);
         }
       });
@@ -99,7 +112,7 @@ const Dashboard = () => {
         <button>Discord Login</button>
       </a>
       {query.get("code") && <em>Saving Token</em>}
-      <button onClick={() => requestUser(uid)}>Get Guilds</button>
+      <Guilds uid={uid} />
     </div>
   );
 };
