@@ -3,6 +3,7 @@ import { useLocation, useHistory } from "react-router-dom";
 
 import { auth, db } from "../firebase";
 import { AuthStateContext } from "../context/AuthContext";
+import { refreshTokens, requestTokens } from "../utils/auth";
 
 const useQuery = () => {
   return new URLSearchParams(useLocation().search);
@@ -11,52 +12,8 @@ const useQuery = () => {
 const realCode = (code: string) => /^[a-zA-Z0-9]{30}$/.test(code);
 
 const DISC_API = "https://discord.com/api/";
-const TOKEN_URL = process.env.REACT_APP_TOKEN_URL;
-const REFRESH_TOKEN_URL = process.env.REACT_APP_REFRESH_TOKEN_URL;
 const OAUTH_URL = `${DISC_API}oauth2/authorize?client_id=744685186335244299&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fdashboard&response_type=code&scope=identify%20guilds`;
-
-// POST to serverless function for token
-const requestAccessToken = async (code: string) => {
-  try {
-    // Request access code from discord
-    const res = await fetch(`${TOKEN_URL}?code=${code}`, {
-      method: "POST",
-    });
-
-    const json = await res.json();
-
-    // Check for error message from function
-    if (json.error) return Promise.reject(json.error_description);
-
-    return json;
-  } catch (error) {
-    return new Error(error);
-  }
-};
-
-const refreshAccessToken = async (uid: string) => {
-  try {
-    // Get user token
-    const doc = await db.collection("users").doc(uid).get();
-
-    // Request access code from discord
-    const res = await fetch(
-      `${REFRESH_TOKEN_URL}?refresh_token=${doc.data()?.refresh_token}`,
-      {
-        method: "POST",
-      }
-    );
-
-    const json = await res.json();
-
-    // Check for error message from function
-    if (json.error) return Promise.reject(json.error_description);
-
-    return json;
-  } catch (error) {
-    return new Error(error);
-  }
-};
+const GET_GUILDS = `${DISC_API}users/@me/guilds`;
 
 const requestUser = async (uid: string) => {
   try {
@@ -64,7 +21,7 @@ const requestUser = async (uid: string) => {
     const doc = await db.collection("users").doc(uid).get();
 
     // Get user's guilds
-    const res = await fetch(`${DISC_API}users/@me/guilds`, {
+    const res = await fetch(GET_GUILDS, {
       headers: {
         Authorization: `Bearer ${doc.data()?.access_token}`,
       },
@@ -74,7 +31,7 @@ const requestUser = async (uid: string) => {
 
     // Check if refresh token is broken
     if (json.message === "401: Unauthorized") {
-      refreshAccessToken(uid)
+      refreshTokens(uid)
         // Store tokens in firestore
         .then((json) => db.collection("users").doc(uid).set(json))
         .catch((err) => Promise.reject(err));
@@ -117,7 +74,7 @@ const Dashboard = () => {
 
   // Check for valid access code
   if (code && realCode(code)) {
-    requestAccessToken(code)
+    requestTokens(code)
       // Store tokens in firestore
       .then((json) => db.collection("users").doc(uid).set(json))
       // Redirect to dashboard
