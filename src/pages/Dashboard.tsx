@@ -4,10 +4,10 @@ import { useHistory } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { AuthStateContext } from "../context/AuthContext";
 import { requestTokens } from "../utils/auth";
-import Guilds from "../components/dashboard/Guilds";
 import { useQuery } from "../utils/useQuery";
 
-const OAUTH_URL = process.env.REACT_APP_OAUTH_URL as string;
+import Guilds from "../components/dashboard/Guilds";
+import DiscordButton from "../components/dashboard/DiscordButton";
 
 const realCode = (code: string) => /^[a-zA-Z0-9]{30}$/.test(code);
 
@@ -62,9 +62,7 @@ const Dashboard = () => {
       <h1>Dashboard</h1>
       <UserId uid={uid} />
       <button onClick={() => auth.signOut()}>Sign out</button>
-      <a href={OAUTH_URL}>
-        <button>Discord Login</button>
-      </a>
+      <DiscordButton />
       {query.get("code") && <em>Saving Token</em>}
       <Guilds uid={uid} />
     </div>
